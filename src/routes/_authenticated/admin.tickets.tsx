@@ -28,6 +28,7 @@ function AdminTicketsPage() {
   });
 
   const list = tickets.data?.content ?? [];
+  const errorMessage = tickets.error instanceof Error ? tickets.error.message : t("errors.request");
 
   return (
     <div className="space-y-5">
@@ -85,7 +86,8 @@ function AdminTicketsPage() {
             {tickets.isLoading && (
               <AdminEmptyRow colSpan={6}>{t("admin.tickets.loading")}</AdminEmptyRow>
             )}
-            {!tickets.isLoading && list.length === 0 && (
+            {tickets.isError && <AdminEmptyRow colSpan={6}>{errorMessage}</AdminEmptyRow>}
+            {!tickets.isLoading && !tickets.isError && list.length === 0 && (
               <AdminEmptyRow colSpan={6}>{t("admin.tickets.empty")}</AdminEmptyRow>
             )}
             {list.map((ticket) => (
