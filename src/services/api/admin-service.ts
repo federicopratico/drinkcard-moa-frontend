@@ -15,6 +15,11 @@ export interface UserSummary {
   email: string;
   role: string;
   status: string;
+  drinkCard?: {
+    lastPurchaseTimestamp: string | null;
+    credits: number;
+    status: string;
+  };
 }
 
 export interface AdminPaymentVolunteerInfo {

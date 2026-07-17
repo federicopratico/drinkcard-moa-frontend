@@ -24,7 +24,6 @@ import { ApiError } from "@/services/api/http-client";
 import { resultCount, translateStatus } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
 
-type AccountResponse = DrinkCardAccount[] | PageResponse<DrinkCardAccount>;
 
 export const Route = createFileRoute("/_authenticated/admin/volunteers")({
   component: VolunteersPage,
@@ -76,14 +75,7 @@ function VolunteersPage() {
     },
   });
 
-  const list = useMemo(() => {
-    const u = arr<UserSummary>(users.data);
-    const a = arr<DrinkCardAccount>(accounts.data as AccountResponse | undefined);
-    const accByVol = new Map(a.map((x) => [x.volunteerId, x]));
-    return u.map((x) => ({ ...x, account: accByVol.get(x.userId) }));
-  }, [users.data, accounts.data]);
-
-  const filtered = list.filter((v) => {
+  const filtered = (users.data?.content ?? []).filter((v) => {
     const text = `${v.fullName ?? ""} ${v.email} ${v.userId}`.toLowerCase();
     return text.includes(q.toLowerCase());
   });
@@ -142,9 +134,9 @@ function VolunteersPage() {
                 <AdminEmptyRow colSpan={5}>{t("common.noResults")}</AdminEmptyRow>
               )}
               {filtered.map((v) => {
-                const accountStatus = v.account?.status;
+                const accountStatus = v.drinkCard?.status;
                 const refillEnabled = accountStatus === "ACTIVE";
-                const hasAccount = !!v.account;
+                const hasAccount = !!v.drinkCard;
                 const isPending =
                   toggleRefill.isPending && toggleRefill.variables?.volunteerId === v.userId;
                 return (
@@ -159,7 +151,7 @@ function VolunteersPage() {
                       <AdminStatusBadge status={v.status} />
                     </td>
                     <td className="text-right text-base font-semibold text-slate-950">
-                      {v.account?.credits ?? 0}
+                      {v.drinkCard?.credits ?? 0}
                     </td>
                     <td className="text-right">
                       <button
@@ -215,17 +207,17 @@ function VolunteersPage() {
                 <Row
                   k={t("admin.volunteers.accountStatus")}
                   v={
-                    selected.account?.status
-                      ? translateStatus(language, selected.account.status)
+                    selected.drinkCard?.status
+                      ? translateStatus(language, selected.drinkCard.status)
                       : "—"
                   }
                 />
-                <Row k={t("admin.volunteers.credits")} v={String(selected.account?.credits ?? 0)} />
+                <Row k={t("admin.volunteers.credits")} v={String(selected.drinkCard?.credits ?? 0)} />
                 <Row
                   k={t("admin.volunteers.lastPurchase")}
                   v={
-                    selected.account?.lastPurchaseTimestamp
-                      ? format(new Date(selected.account.lastPurchaseTimestamp), "d MMM, HH:mm", {
+                    selected.drinkCard?.lastPurchaseTimestamp
+                      ? format(new Date(selected.drinkCard.lastPurchaseTimestamp), "d MMM, HH:mm", {
                           locale: dateLocale,
                         })
                       : "—"
@@ -242,10 +234,10 @@ function VolunteersPage() {
                 </p>
                 <button
                   type="button"
-                  disabled={!selected.account || addDrinkCard.isPending}
+                  disabled={!selected.drinkCard || addDrinkCard.isPending}
                   onClick={() => {
                     if (
-                      !selected.account ||
+                      !selected.drinkCard ||
                       addDrinkCard.isPending ||
                       addDrinkCardInFlight.current
                     ) {
